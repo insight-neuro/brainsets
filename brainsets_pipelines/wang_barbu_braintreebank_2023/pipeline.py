@@ -21,7 +21,7 @@ from brainsets.descriptions import (
     SessionDescription,
     SubjectDescription,
 )
-from brainsets.format import NeuralData
+from brainsets.format import NeuralData, bids_filename
 from brainsets.pipeline import BrainsetPipeline
 from brainsets.taxonomy import RecordingTech
 from brainsets.taxonomy.subject import Species
@@ -129,6 +129,7 @@ class Pipeline(BrainsetPipeline):
                     {
                         "subject_id": f"sub_{subj_id}",
                         "session_id": f"trial{trial_id:03}",
+                        "filename": bids_filename(subj_id, trial_id),
                     }
                     for subj_id, trial_id in ALL_SUBJECT_TRIALS
                 ]
@@ -138,20 +139,20 @@ class Pipeline(BrainsetPipeline):
         )
         return manifest
 
-    def download(self, manifest_item: NamedTuple) -> tuple[str, str, Path]:
+    def download(self, manifest_item: NamedTuple) -> tuple[NamedTuple, Path]:
         self.update_status("DOWNLOADING")
-        neural_data, subject_id, session_id = manifest_item
-        url = f"https://braintreebank.dev/data/subject_data/{subject_id}/{session_id}/{neural_data}.h5.zip"
-        download_and_extract(url, extract_to=self.processed_dir)
-        return subject_id, session_id, self.processed_dir / f"{neural_data}.h5"
+        neural_data, subject_id, session_id, _ = manifest_item
+        url = f"https://braintreebank.dev/data/subject_data/{subject_id}/{session_id}/{neural_data}.h5"
+        download_and_extract(url, extract_to=self.raw_dir)
+        return manifest_item, self.raw_dir / f"{neural_data}.h5"
 
-    def process(self, download_output: tuple[str, str, Path]) -> None:
+    def process(self, download_output: tuple[NamedTuple, Path]) -> None:
         self.update_status("Processing...")
-        subject_id, session_id, downloaded_path = download_output
+        manifest_item, downloaded_path = download_output
+        _, subject_id, session_id, filename = manifest_item
         assert self.args is not None
 
-        # Check if already processed
-        output_path = self.processed_dir / f"{subject_id}_{session_id}.hdf5"
+        output_path = self.processed_dir / filename
         if output_path.exists() and not self.args.overwrite:
             logging.info("Skipping processing, file exists: %s", output_path)
             return
@@ -180,11 +181,11 @@ class Pipeline(BrainsetPipeline):
             device=self.device_description,
             data=neural_data,
             channels=channels,
+            domain="auto",
         )
 
         with h5py.File(output_path, "w") as f:
             brainset.to_hdf5(f)
-        logging.info("Processed data saved to %s", output_path)
 
         # Delete the downloaded raw data to save space
         downloaded_path.unlink()

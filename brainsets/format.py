@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Literal
 
+from h5py import File
 from temporaldata import ArrayDict, Data, Interval, RegularTimeSeries
 
 from brainsets.descriptions import (
@@ -11,6 +12,27 @@ from brainsets.descriptions import (
 )
 
 from .core import serialize_fn_map
+
+
+def bids_filename(
+    subject_id: str | int,
+    session_id: str | int,
+    *suffixes: str,
+    extension: str = "h5",
+) -> str:
+    """Generate a standardized BIDS filename."""
+
+    # Normalize to string and remove accidental prefixes
+    subject_id = str(subject_id).replace("sub-", "")
+    session_id = str(session_id).replace("ses-", "")
+
+    # Zero-pad
+    subject_id = subject_id.zfill(3)
+    session_id = session_id.zfill(2)
+
+    suffix_str = f"_{'_'.join(suffixes)}" if suffixes else ""
+
+    return f"sub-{subject_id}_ses-{session_id}{suffix_str}.{extension}"
 
 
 class NeuralData(Data):
@@ -50,6 +72,8 @@ class NeuralData(Data):
         self.channels = channels
 
     def to_hdf5(
-        self, file, serialize_fn_map: dict[type, Callable] | None = serialize_fn_map
+        self,
+        file: File,
+        serialize_fn_map: dict[type, Callable] | None = serialize_fn_map,
     ):
-        return super().to_hdf5(file, serialize_fn_map)
+        super().to_hdf5(file, serialize_fn_map)
