@@ -140,10 +140,10 @@ class Pipeline(BrainsetPipeline):
 
     def download(self, manifest_item: NamedTuple) -> tuple[str, str, Path]:
         self.update_status("DOWNLOADING")
-        path = self.processed_dir / manifest_item.neural_data
-        url = f"https://braintreebank.dev/data/subject_data/{manifest_item.subject_id}/{manifest_item.session_id}/{manifest_item.neural_data}.h5.zip"
-        download_and_extract(url, extract_to=path.parent)
-        return manifest_item.subject_id, manifest_item.session_id, path
+        neural_data, subject_id, session_id = manifest_item
+        url = f"https://braintreebank.dev/data/subject_data/{subject_id}/{session_id}/{neural_data}.h5.zip"
+        download_and_extract(url, extract_to=self.processed_dir)
+        return subject_id, session_id, self.processed_dir / f"{neural_data}.h5"
 
     def process(self, download_output: tuple[str, str, Path]) -> None:
         self.update_status("Processing...")
