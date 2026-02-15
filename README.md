@@ -23,6 +23,8 @@ pip install brainsets
 
 ## List of available brainsets
 
+Original Fork:
+
 | brainset_id | Brainset Card | Raw Data Size | Processed Data Size |
 |-------------|---------------|---------------|--------------------|
 | churchland_shenoy_neural_2012 | [Link](https://brainsets.readthedocs.io/en/latest/glossary/brainsets.html#churchland-shenoy-neural-2012) | 46 GB | 25 GB |
@@ -32,6 +34,14 @@ pip install brainsets
 | perich_miller_population_2018 | [Link](https://brainsets.readthedocs.io/en/latest/glossary/brainsets.html#perich-miller-population-2018) | 13 GB | 2.9 GB |
 | kemp_sleep_edf_2013 | TBA | 8.2 GB | 60 GB |
 | allen_visual_coding_ophys_2016 | TBA | 356 GB | 58 GB |
+
+Insight-Neuro Brainsets:
+
+| brainset_id | Brainset Link | Raw Data Size | Processed Data Size |
+|-------------|---------------|---------------|--------------------|
+| wang_barbu_braintreebank_2023 | [Link](https://braintreebank.dev/) | --- | 230 GB |
+
+
 
 
 ## Acknowledgements
