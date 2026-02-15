@@ -1,5 +1,5 @@
-from enum import IntEnum, auto
 import re
+from enum import IntEnum, auto
 
 import numpy as np
 

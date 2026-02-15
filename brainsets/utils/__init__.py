@@ -1,4 +1,3 @@
-from . import dandi_utils
-from . import dir_utils
-from . import mat_utils
-from . import split
+from . import dandi_utils, dir_utils, mat_utils, split
+
+__all__ = ["dandi_utils", "dir_utils", "mat_utils", "split"]

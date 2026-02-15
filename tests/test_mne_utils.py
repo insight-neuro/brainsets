@@ -1,19 +1,19 @@
 import datetime
-import numpy as np
-import pytest
+import importlib
 from unittest.mock import MagicMock, patch
 
-try:
-    import mne
+import numpy as np
+import pytest
 
+if importlib.util.find_spec("mne") is not None:
     MNE_AVAILABLE = True
     from brainsets.utils.mne_utils import (
-        extract_measurement_date,
-        extract_eeg_signal,
         extract_channels,
+        extract_eeg_signal,
+        extract_measurement_date,
         extract_psg_signal,
     )
-except ImportError:
+else:
     MNE_AVAILABLE = False
     extract_measurement_date = None
     extract_eeg_signal = None
@@ -69,7 +69,6 @@ class TestExtractMeasDate:
 
 @pytest.mark.skipif(not MNE_AVAILABLE, reason="mne not installed")
 class TestExtractEEGSignal:
-
     def test_returns_regular_time_series(self):
         mock_raw = create_mock_raw(n_channels=4, n_samples=500, sfreq=256.0)
         result = extract_eeg_signal(mock_raw)
@@ -113,7 +112,6 @@ class TestExtractEEGSignal:
 
 @pytest.mark.skipif(not MNE_AVAILABLE, reason="mne not installed")
 class TestExtractChannels:
-
     def test_returns_array_dict(self):
         mock_raw = create_mock_raw()
         result = extract_channels(mock_raw)
@@ -153,7 +151,6 @@ class TestExtractChannels:
 
 @pytest.mark.skipif(not MNE_AVAILABLE, reason="mne not installed")
 class TestExtractPSGSignal:
-
     def create_mock_psg_raw(self, ch_names, n_samples=1000, sfreq=256.0):
         mock_raw = MagicMock()
         n_channels = len(ch_names)

@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
+
 from brainsets.processing.signal import (
-    extract_bands,
     cube_to_long,
+    extract_bands,
 )
 from brainsets.utils.mne_utils import MNE_AVAILABLE
 

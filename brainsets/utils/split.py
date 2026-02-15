@@ -1,14 +1,14 @@
 import warnings
+
 import numpy as np
-from typing import Dict, List, Optional, Tuple
-from temporaldata import Interval, Data
+from temporaldata import Data, Interval
 
 
 def split_one_epoch(
     epoch: Interval,
     grid: Interval,
-    split_ratios: Optional[List[float]] = None,
-) -> Tuple[Interval, Interval, Interval]:
+    split_ratios: list[float] | None = None,
+) -> tuple[Interval, Interval, Interval]:
     """Split a single epoch into train, validation, and test intervals.
 
     Args:
@@ -89,7 +89,7 @@ def split_one_epoch(
 def split_two_epochs(
     epoch: Interval,
     grid: Interval,
-) -> Tuple[Interval, Interval, Interval]:
+) -> tuple[Interval, Interval, Interval]:
     assert len(epoch) == 2
     first_epoch_start = epoch.start[0]
     first_epoch_end = epoch.end[0]
@@ -116,7 +116,7 @@ def split_two_epochs(
 
 def split_three_epochs(
     epoch: Interval, grid: Interval
-) -> Tuple[Interval, Interval, Interval]:
+) -> tuple[Interval, Interval, Interval]:
     assert len(epoch) == 3
 
     test_interval = epoch.select_by_mask(np.array([False, False, True]))
@@ -140,7 +140,7 @@ def split_three_epochs(
 
 def split_four_epochs(
     epoch: Interval, grid: Interval
-) -> Tuple[Interval, Interval, Interval]:
+) -> tuple[Interval, Interval, Interval]:
     assert len(epoch) == 4
 
     test_interval = epoch.select_by_mask(np.array([False, False, False, True]))
@@ -163,7 +163,7 @@ def split_four_epochs(
 
 def split_five_epochs(
     epoch: Interval, grid: Interval
-) -> Tuple[Interval, Interval, Interval]:
+) -> tuple[Interval, Interval, Interval]:
     assert len(epoch) == 5
 
     train_interval = epoch.select_by_mask(np.array([True, True, True, False, False]))
@@ -187,7 +187,7 @@ def split_five_epochs(
 
 def split_more_than_five_epochs(
     epoch: Interval,
-) -> Tuple[Interval, Interval, Interval]:
+) -> tuple[Interval, Interval, Interval]:
     assert len(epoch) > 5
 
     train_interval, val_interval, test_interval = epoch.split(
@@ -197,8 +197,8 @@ def split_more_than_five_epochs(
 
 
 def generate_train_valid_test_splits(
-    epoch_dict: Dict[str, Interval], grid: Interval
-) -> Tuple[Interval, Interval, Interval]:
+    epoch_dict: dict[str, Interval], grid: Interval
+) -> tuple[Interval, Interval, Interval]:
     train_intervals = Interval(np.array([]), np.array([]))
     valid_intervals = Interval(np.array([]), np.array([]))
     test_intervals = Interval(np.array([]), np.array([]))
@@ -257,7 +257,7 @@ def chop_intervals(
     chopped_intervals = []
     original_indices = []
 
-    for i, (start, end) in enumerate(zip(intervals.start, intervals.end)):
+    for i, (start, end) in enumerate(zip(intervals.start, intervals.end, strict=False)):
         if end - start <= duration:
             chopped = Interval(start=np.array([start]), end=np.array([end]))
         else:
@@ -302,7 +302,7 @@ def generate_stratified_folds(
     n_folds: int = 5,
     val_ratio: float = 0.2,
     seed: int = 42,
-) -> List[Data]:
+) -> list[Data]:
     """
     Generates stratified train/valid/test splits using a two-stage splitting process.
 
@@ -332,11 +332,11 @@ def generate_stratified_folds(
     """
     try:
         from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "This function requires the scikit-learn library which you can install with "
             "`pip install scikit-learn`"
-        )
+        ) from e
 
     if not hasattr(intervals, stratify_by):
         raise ValueError(
@@ -387,8 +387,8 @@ def generate_stratified_folds(
 
 
 def generate_train_valid_splits_one_epoch(
-    epoch: Interval, split_ratios: Optional[List[float]] = None
-) -> Tuple[Interval, Interval]:
+    epoch: Interval, split_ratios: list[float] | None = None
+) -> tuple[Interval, Interval]:
     """Split a single time interval into training and validation intervals.
 
     Args:

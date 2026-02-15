@@ -1,5 +1,6 @@
-from typing import Callable, Optional, Literal
+from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from torch_brain.dataset import Dataset, SpikingDatasetMixin
 
@@ -8,8 +9,8 @@ class PeiPandarinathNLB2021(SpikingDatasetMixin, Dataset):
     def __init__(
         self,
         root: str,
-        recording_ids: Optional[list[str]] = None,
-        transform: Optional[Callable] = None,
+        recording_ids: list[str] | None = None,
+        transform: Callable | None = None,
         dirname: str = "pei_pandarinath_nlb_2021",
         **kwargs,
     ):
@@ -25,7 +26,7 @@ class PeiPandarinathNLB2021(SpikingDatasetMixin, Dataset):
 
     def get_sampling_intervals(
         self,
-        split: Optional[Literal["train", "valid", "test"]] = None,
+        split: Literal["train", "valid", "test"] | None = None,
     ):
         domain_key = "domain" if split is None else f"{split}_domain"
         return {

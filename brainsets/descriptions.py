@@ -1,13 +1,12 @@
 import datetime
-from typing import Dict, List, Tuple, Optional, Union
 
+import temporaldata
 from pydantic import field_validator
 from pydantic.dataclasses import dataclass
-import temporaldata
 
 import brainsets
-from brainsets.taxonomy import *
-from brainsets.taxonomy.mice import *
+from brainsets.taxonomy import Cre_line, RecordingTech, Sex, Species, Task
+from brainsets.taxonomy.mice import BrainRegion
 
 
 @dataclass
@@ -71,11 +70,11 @@ class SubjectDescription(temporaldata.Data):
     age: float = 0.0  # in days
     sex: Sex = Sex.UNKNOWN
     genotype: str = "unknown"  # no idea how many there will be for now.
-    cre_line: Optional[Cre_line] = None
+    cre_line: Cre_line | None = None
 
     @field_validator("age", mode="before")
     @classmethod
-    def normalize_age(cls, age: Union[float, int, str, None] = None) -> float:
+    def normalize_age(cls, age: float | int | str | None = None) -> float:
         """Normalize an age value to a float in days.
 
         Args:
@@ -111,7 +110,7 @@ class SubjectDescription(temporaldata.Data):
 
     @field_validator("sex", mode="before")
     @classmethod
-    def normalize_sex(cls, sex: Union[str, int, Sex, None] = None) -> Sex:
+    def normalize_sex(cls, sex: str | int | Sex | None = None) -> Sex:
         """Normalize a sex value to a Sex enum member.
 
         Args:
@@ -129,7 +128,7 @@ class SubjectDescription(temporaldata.Data):
         elif isinstance(sex, Sex):
             return sex
         elif isinstance(sex, bool):
-            raise TypeError(f"Sex must be a Sex enum, string, int, or None, got bool")
+            raise TypeError("Sex must be a Sex enum, string, int, or None, got bool")
         elif isinstance(sex, str):
             try:
                 return Sex.from_string(sex)
@@ -147,9 +146,7 @@ class SubjectDescription(temporaldata.Data):
 
     @field_validator("species", mode="before")
     @classmethod
-    def normalize_species(
-        cls, species: Union[str, int, Species, None] = None
-    ) -> Species:
+    def normalize_species(cls, species: str | int | Species | None = None) -> Species:
         """Normalize a species value to a Species enum member.
 
         Args:
@@ -199,7 +196,7 @@ class SessionDescription(temporaldata.Data):
 
     id: str
     recording_date: datetime.datetime
-    task: Optional[Task] = None
+    task: Task | None = None
 
 
 @dataclass
@@ -229,11 +226,11 @@ class DeviceDescription(temporaldata.Data):
     id: str
     # units: List[str]
     # areas: Union[List[StringIntEnum], List[Macaque]]
-    recording_tech: Union[RecordingTech, List[RecordingTech]] = None
-    processing: Optional[str] = None
+    recording_tech: RecordingTech | list[RecordingTech] | None = None
+    processing: str | None = None
     chronic: bool = False
-    start_date: Optional[datetime.datetime] = None
-    end_date: Optional[datetime.datetime] = None
+    start_date: datetime.datetime | None = None
+    end_date: datetime.datetime | None = None
     # Ophys
-    imaging_depth: Optional[float] = None  # in um
-    target_area: Optional[BrainRegion] = None
+    imaging_depth: float | None = None  # in um
+    target_area: BrainRegion | None = None

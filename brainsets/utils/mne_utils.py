@@ -6,9 +6,8 @@ MNE Raw objects and convert them to brainsets data structures.
 
 import datetime
 import warnings
+
 import numpy as np
-import pandas as pd
-from typing import Tuple
 from temporaldata import ArrayDict, Interval, RegularTimeSeries
 
 try:
@@ -46,7 +45,9 @@ def extract_measurement_date(
     _check_mne_available("extract_measurement_date")
     if recording_data.info["meas_date"] is not None:
         return recording_data.info["meas_date"]
-    warnings.warn("No measurement date found, using Unix epoch as placeholder")
+    warnings.warn(
+        "No measurement date found, using Unix epoch as placeholder", stacklevel=1
+    )
     return datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
 
 
@@ -101,7 +102,7 @@ def extract_channels(
     )
 
 
-def extract_psg_signal(raw_psg: "mne.io.Raw") -> Tuple[RegularTimeSeries, ArrayDict]:
+def extract_psg_signal(raw_psg: "mne.io.Raw") -> tuple[RegularTimeSeries, ArrayDict]:
     """Extract physiological signals from polysomnography (PSG) recording as a RegularTimeSeries.
 
     Args:

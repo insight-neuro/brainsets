@@ -1,8 +1,8 @@
 """Tests for CLI commands in brainsets._cli module."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
 
 from brainsets._cli.cli import cli
@@ -72,7 +72,9 @@ class TestPrepareCommand:
         raw_dir.mkdir()
         processed_dir.mkdir()
 
-        with (patch("brainsets._cli.cli_prepare.subprocess.run") as mock_subprocess,):
+        with (
+            patch("brainsets._cli.cli_prepare.subprocess.run") as mock_subprocess,
+        ):
             mock_subprocess.return_value = MagicMock(returncode=0)
             result = runner.invoke(
                 cli,

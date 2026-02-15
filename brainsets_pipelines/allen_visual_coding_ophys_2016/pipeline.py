@@ -8,12 +8,10 @@
 # ///
 
 
-import argparse
 import logging
 import os
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from pathlib import Path
-from typing import Optional
 
 import h5py
 import numpy as np
@@ -68,7 +66,6 @@ class Pipeline(BrainsetPipeline):
 
     @classmethod
     def get_manifest(cls, raw_dir, args) -> pd.DataFrame:
-
         # We have a precomputed list of "good" sessions that were used in POYO+.
         pipeline_dir = Path(__file__).resolve().parent
         with open(pipeline_dir / "session_ids.txt") as fh:
@@ -265,7 +262,7 @@ def extract_calcium_traces(nwbfile):
     period = np.mean(timestamps_diff)
     if not np.allclose(timestamps_diff, period, rtol=1e-03, atol=1e-02):
         raise ValueError(
-            f"Timestamps are not uniformly spaced, found a deviation of {timestamps_diff.max()-timestamps_diff.min()}."
+            f"Timestamps are not uniformly spaced, found a deviation of {timestamps_diff.max() - timestamps_diff.min()}."
         )
     sampling_rate = 1.0 / period
 
@@ -538,7 +535,7 @@ def extract_pupil_info(nwbfile):
     try:
         timestamps, pupil_location = nwbfile.get_pupil_location()
         _, pupil_size = nwbfile.get_pupil_size()
-    except NoEyeTrackingException as e:
+    except NoEyeTrackingException:
         return None
 
     # Check for NaNs
@@ -570,7 +567,9 @@ def extract_stimulus_epochs(nwbfile):
 
     epoch_dict = (
         df.groupby("stimulus")
-        .apply(lambda x: list(zip(timestamps[x.start], timestamps[x.end])))
+        .apply(
+            lambda x: list(zip(timestamps[x.start], timestamps[x.end], strict=False))
+        )
         .to_dict()
     )
 

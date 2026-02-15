@@ -5,7 +5,6 @@
 
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Optional
 
 import h5py
 import numpy as np
@@ -62,7 +61,7 @@ class Pipeline(BrainsetPipeline):
     def get_manifest(
         cls,
         raw_dir: Path,
-        args: Optional[Namespace],
+        args: Namespace | None,
     ) -> pd.DataFrame:
         manifest_list = [
             {"session_id": x.split(".")[0].lower(), "fname": x} for x in MANIFEST_LIST

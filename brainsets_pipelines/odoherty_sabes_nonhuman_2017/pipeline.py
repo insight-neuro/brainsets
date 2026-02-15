@@ -3,11 +3,10 @@
 # dependencies = ["zenodo_get==2.0.0"]
 # ///
 
-import os
 import datetime
 import hashlib
 import logging
-import subprocess
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -42,7 +41,7 @@ class Pipeline(BrainsetPipeline):
         raw_dir.mkdir(exist_ok=True, parents=True)
 
         # list files to download
-        r_fd = os.popen(f"zenodo_get -w - 3854034")
+        r_fd = os.popen("zenodo_get -w - 3854034")
         manifest_out = r_fd.read()
         exit_code = r_fd.close()
         if exit_code is not None and exit_code != 0:
@@ -54,7 +53,7 @@ class Pipeline(BrainsetPipeline):
             raise RuntimeError("zenodo_get (md5) failed")
 
         # parse md5sums
-        with open(raw_dir / "md5sums.txt", "r") as f:
+        with open(raw_dir / "md5sums.txt") as f:
             md5sums = {}
             for line in f:
                 line = line.strip()
@@ -225,7 +224,7 @@ def extract_behavior(h5file):
 
     cursor_pos = h5file["cursor_pos"][:].T
     finger_pos = h5file["finger_pos"][:].T
-    target_pos = h5file["target_pos"][:].T
+    target_pos = h5file["target_pos"][:].T  # noqa: F841
     timestamps = h5file["t"][:][0]
 
     expected_period = 0.004
@@ -385,7 +384,7 @@ def split_intervals(data):
     intervals = Interval.linspace(task_domain.start[0], task_domain.end[-1], 10)
     if len(data.no_movement_segments) > 0:
         task_ratio = []
-        for start, end in zip(intervals.start, intervals.end):
+        for start, end in zip(intervals.start, intervals.end, strict=False):
             intersection = task_domain & Interval(start, end)
             duration = np.sum(intersection.end - intersection.start)
             task_ratio.append(duration / (end - start))

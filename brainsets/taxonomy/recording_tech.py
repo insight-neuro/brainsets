@@ -1,6 +1,4 @@
-from dataclasses import dataclass
-
-from ..core import Dictable, StringIntEnum
+from ..core import StringIntEnum
 
 
 class RecordingTech(StringIntEnum):

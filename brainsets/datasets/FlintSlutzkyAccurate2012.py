@@ -1,5 +1,6 @@
-from typing import Callable, Optional, Literal
+from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from torch_brain.dataset import Dataset, SpikingDatasetMixin
 
@@ -8,9 +9,9 @@ class FlintSlutzkyAccurate2012(SpikingDatasetMixin, Dataset):
     def __init__(
         self,
         root: str,
-        recording_ids: Optional[list[str]] = None,
-        transform: Optional[Callable] = None,
-        split_type: Optional[Literal["hand_velocity"]] = "hand_velocity",
+        recording_ids: list[str] | None = None,
+        transform: Callable | None = None,
+        split_type: Literal["hand_velocity"] | None = "hand_velocity",
         dirname: str = "flint_slutzky_accurate_2012",
         **kwargs,
     ):
@@ -27,7 +28,7 @@ class FlintSlutzkyAccurate2012(SpikingDatasetMixin, Dataset):
 
     def get_sampling_intervals(
         self,
-        split: Optional[Literal["train", "valid", "test"]] = None,
+        split: Literal["train", "valid", "test"] | None = None,
     ):
         domain_key = "domain" if split is None else f"{split}_domain"
         ans = {}

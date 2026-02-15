@@ -10,7 +10,7 @@ def get_data_paths():
     sh_path = root / "detect_environment.sh"
     environment = subprocess.check_output(["bash", str(sh_path)]).strip().decode()
     yaml_path = root / "configs" / "environments" / f"{environment}.yaml"
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         data_paths = yaml.load(f, yaml.CLoader)
 
     for key, value in data_paths.items():

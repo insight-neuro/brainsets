@@ -1,19 +1,18 @@
+import logging
 import os
 import pathlib
 import shutil
 from collections import defaultdict
-import logging
 
-from rich import print
 from rich.filesize import decimal
 from rich.markup import escape
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Confirm
 from rich.text import Text
 from rich.tree import Tree
 
 
 def find_files_by_extension(folder_path, extension):
-    for root, dirs, files in os.walk(folder_path):
+    for root, _dirs, files in os.walk(folder_path):
         for file in files:
             if file.endswith(extension):
                 yield os.path.join(root, file)
@@ -22,9 +21,9 @@ def find_files_by_extension(folder_path, extension):
 def make_directory(path, prompt_if_exists=False):
     if not os.path.exists(path):
         os.makedirs(path)
-        logging.info("New directory [u]{}[/u] created.".format(path))
+        logging.info(f"New directory [u]{path}[/u] created.")
     else:
-        logging.info("Directory [u]{}[/u] already exists.".format(path))
+        logging.info(f"Directory [u]{path}[/u] already exists.")
         if not prompt_if_exists:
             return
 
@@ -37,7 +36,7 @@ def make_directory(path, prompt_if_exists=False):
         if rm_dir:
             shutil.rmtree(path)
             os.makedirs(path)
-            logging.info("New directory [u]{}[/u] created.".format(path))
+            logging.info(f"New directory [u]{path}[/u] created.")
         else:
             # kill process
             logging.info("Killing process.")
@@ -81,7 +80,7 @@ def walk_directory(directory: pathlib.Path, tree: Tree) -> None:
             try:
                 create_time = path.stat().st_birthtime
                 text_filename.append(f" ({create_time})", "blue")
-            except:
+            except Exception:
                 pass
             icon = defaultdict(
                 lambda: "📄 ",

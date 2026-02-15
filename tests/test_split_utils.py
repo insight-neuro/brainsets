@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from temporaldata import Data, Interval
+
 from brainsets.utils.split import (
     chop_intervals,
     generate_stratified_folds,
@@ -130,7 +131,7 @@ class TestGenerateStratifiedFolds:
             # Class 2: 0.1 * 20 = 2
             test_ids = test.id
             unique, counts = np.unique(test_ids, return_counts=True)
-            counts_dict = dict(zip(unique, counts))
+            counts_dict = dict(zip(unique, counts, strict=False))
 
             # Allow small deviation due to rounding/randomness
             assert counts_dict.get(0, 0) in [11, 12, 13]
@@ -144,7 +145,7 @@ class TestGenerateStratifiedFolds:
             # Class 2: 0.1 * 20 = 2
             valid_ids = valid.id
             v_unique, v_counts = np.unique(valid_ids, return_counts=True)
-            v_counts_dict = dict(zip(v_unique, v_counts))
+            v_counts_dict = dict(zip(v_unique, v_counts, strict=False))
 
             assert v_counts_dict.get(0, 0) in [11, 12, 13]
             assert v_counts_dict.get(1, 0) in [5, 6, 7]

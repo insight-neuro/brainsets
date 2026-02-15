@@ -15,7 +15,7 @@ class Character(IntEnum):
     i = auto()
     j = auto()
     k = auto()
-    l = auto()
+    l = auto()  # noqa: E741
     m = auto()
     n = auto()
     o = auto()

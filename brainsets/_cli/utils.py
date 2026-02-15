@@ -1,16 +1,16 @@
 import os
-from typing import Callable, List, Optional, Union
+from pathlib import Path
+
 import click
 import yaml
-from pathlib import Path
+
 import brainsets_pipelines
-from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
 
 CONFIG_FILE = Path.home() / ".brainsets.yaml"
 PIPELINES_PATH = Path(brainsets_pipelines.__path__[0])
 
 
-def expand_path(path: Union[str, Path]) -> Path:
+def expand_path(path: str | Path) -> Path:
     """
     Convert string path to absolute Path, expanding environment variables and user.
     """
@@ -19,7 +19,7 @@ def expand_path(path: Union[str, Path]) -> Path:
 
 def load_config(path: Path = CONFIG_FILE, raise_cli_error: bool = True):
     if path.exists():
-        with open(path, "r") as f:
+        with open(path) as f:
             ret = yaml.safe_load(f)
 
         if raise_cli_error:
@@ -27,7 +27,7 @@ def load_config(path: Path = CONFIG_FILE, raise_cli_error: bool = True):
         else:
             try:
                 _validate_config(ret)
-            except:
+            except click.ClickException:
                 return None
 
         return ret

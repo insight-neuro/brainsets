@@ -3,13 +3,11 @@
 https://dx.doi.org/10.1088/1741-2560/12/3/036009
 """
 
-from typing import List, Tuple
-
 import numpy as np
 import tqdm
 from scipy import signal
+from temporaldata import ArrayDict, Data, IrregularTimeSeries
 
-from temporaldata import Data, IrregularTimeSeries, ArrayDict
 from brainsets.taxonomy import RecordingTech
 
 
@@ -51,7 +49,7 @@ def downsample_wideband(
 
 def extract_bands(
     lfps: np.ndarray, ts: np.ndarray, Fs: float = 1000, notch: float = 60
-) -> Tuple[np.ndarray, np.ndarray, List]:
+) -> tuple[np.ndarray, np.ndarray, list]:
     """Extract bands from LFP
 
     We prefer to extract bands from the LFP upstream rather than downstream, because
@@ -63,16 +61,16 @@ def extract_bands(
     """
     try:
         import mne
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "This function requires the MNE library which you can install with "
             "`pip install mne`"
-        )
+        ) from e
 
     target_Fs = 50
-    assert (
-        Fs % target_Fs == 0
-    ), "Sampling rate must be a multiple of the target frequency"
+    assert Fs % target_Fs == 0, (
+        "Sampling rate must be a multiple of the target frequency"
+    )
 
     assert lfps.shape[0] == ts.shape[0], "Time should be first dimension."
     info = mne.create_info(
@@ -110,7 +108,7 @@ def extract_bands(
 
 def cube_to_long(
     ts: np.ndarray, cube: np.ndarray, channel_prefix="chan"
-) -> Tuple[List[IrregularTimeSeries], Data]:
+) -> tuple[list[IrregularTimeSeries], Data]:
     """Convert a cube of threshold crossings to a list of trials and units."""
     assert cube.shape[1] == len(ts)
     assert cube.ndim == 3

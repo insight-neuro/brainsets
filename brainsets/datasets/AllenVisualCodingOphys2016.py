@@ -1,20 +1,20 @@
-from typing import Callable, Optional, Literal
+from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
-from torch_brain.dataset import Dataset, CalciumImagingDatasetMixin
+from torch_brain.dataset import CalciumImagingDatasetMixin, Dataset
 
 
 class AllenVisualCodingOphys2016(CalciumImagingDatasetMixin, Dataset):
     def __init__(
         self,
         root: str,
-        recording_ids: Optional[list[str]] = None,
-        transform: Optional[Callable] = None,
-        split_type: Optional[Literal["poyo_plus"]] = "poyo_plus",
+        recording_ids: list[str] | None = None,
+        transform: Callable | None = None,
+        split_type: Literal["poyo_plus"] | None = "poyo_plus",
         dirname: str = "allen_visual_coding_ophys_2016",
         **kwargs,
     ):
-
         super().__init__(
             dataset_dir=Path(root) / dirname,
             recording_ids=recording_ids,
@@ -30,9 +30,8 @@ class AllenVisualCodingOphys2016(CalciumImagingDatasetMixin, Dataset):
 
     def get_sampling_intervals(
         self,
-        split: Optional[Literal["train", "valid", "test"]] = None,
+        split: Literal["train", "valid", "test"] | None = None,
     ):
-
         if split is None:
             return {rid: self.get_recording(rid).domain for rid in self.recording_ids}
 

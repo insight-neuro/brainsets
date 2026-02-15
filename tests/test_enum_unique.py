@@ -1,7 +1,7 @@
-import pytest
 import inspect
-from brainsets.core import StringIntEnum
+
 import brainsets.taxonomy
+from brainsets.core import StringIntEnum
 
 
 def find_duplicates(enum):
@@ -29,7 +29,9 @@ def find_duplicates(enum):
 
 def get_all_stringintenum_subclasses():
     classes = []
-    for module_name, module in inspect.getmembers(brainsets.taxonomy, inspect.ismodule):
+    for _module_name, module in inspect.getmembers(
+        brainsets.taxonomy, inspect.ismodule
+    ):
         for name, obj in inspect.getmembers(module):
             if (
                 inspect.isclass(obj)

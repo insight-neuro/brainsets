@@ -1,6 +1,8 @@
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 from .core import serialize_fn_map
+
+__all__ = ["serialize_fn_map"]
 
 try:
     __version__ = version("brainsets")

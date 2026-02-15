@@ -18,4 +18,4 @@ class Sex(StringIntEnum):
     UNKNOWN = U = 0
     MALE = M = 1
     FEMALE = F = 2
-    OTHER = O = 3
+    OTHER = O = 3  # noqa: E741

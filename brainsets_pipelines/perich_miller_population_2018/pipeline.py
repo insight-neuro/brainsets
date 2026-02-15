@@ -6,35 +6,31 @@
 # ]
 # ///
 
-from argparse import ArgumentParser
-from typing import NamedTuple
-from pynwb import NWBHDF5IO
-
 import datetime
-import h5py
+from argparse import ArgumentParser
 
+import h5py
 import numpy as np
+import pandas as pd
 from pynwb import NWBHDF5IO
 from scipy.ndimage import binary_dilation, binary_erosion
 from sklearn.model_selection import train_test_split
-import pandas as pd
+from temporaldata import Data, Interval, IrregularTimeSeries
 
-from temporaldata import Data, IrregularTimeSeries, Interval
+from brainsets import serialize_fn_map
 from brainsets.descriptions import (
     BrainsetDescription,
-    SessionDescription,
     DeviceDescription,
+    SessionDescription,
 )
+from brainsets.pipeline import BrainsetPipeline
+from brainsets.taxonomy import RecordingTech, Task
 from brainsets.utils.dandi_utils import (
+    download_file,
     extract_spikes_from_nwbfile,
     extract_subject_from_nwb,
-    download_file,
     get_nwb_asset_list,
 )
-from brainsets.taxonomy import RecordingTech, Task
-from brainsets import serialize_fn_map
-
-from brainsets.pipeline import BrainsetPipeline
 
 parser = ArgumentParser()
 parser.add_argument("--redownload", action="store_true")

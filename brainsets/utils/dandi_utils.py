@@ -1,7 +1,7 @@
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
 from temporaldata import ArrayDict, IrregularTimeSeries
 
 from brainsets.descriptions import SubjectDescription
@@ -108,8 +108,8 @@ def extract_spikes_from_nwbfile(nwbfile, recording_tech):
 def download_file(path, url, raw_dir, overwrite=False) -> Path:
     try:
         import dandi.download
-    except:
-        raise RuntimeError("dandi package not present, and is required")
+    except Exception as e:
+        raise RuntimeError("dandi package not present, and is required") from e
 
     asset_path = Path(path)
     download_dir = raw_dir / asset_path.parent
@@ -129,8 +129,8 @@ def download_file(path, url, raw_dir, overwrite=False) -> Path:
 def get_nwb_asset_list(dandiset_id: str):
     try:
         from dandi import dandiarchive
-    except:
-        raise RuntimeError("dandi package not present, and is required")
+    except Exception as e:
+        raise RuntimeError("dandi package not present, and is required") from e
 
     parsed_url = dandiarchive.parse_dandi_url(dandiset_id)
     with parsed_url.navigate() as (client, dandiset, assets):

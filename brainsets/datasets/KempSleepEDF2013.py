@@ -1,19 +1,20 @@
-from typing import Callable, Optional, Literal
+from collections.abc import Callable
 from pathlib import Path
-from torch_brain.utils import np_string_prefix
-from temporaldata import Data
+from typing import Literal
 
+from temporaldata import Data
 from torch_brain.dataset import Dataset
+from torch_brain.utils import np_string_prefix
 
 
 class KempSleepEDF2013(Dataset):
     def __init__(
         self,
         root: str,
-        recording_ids: Optional[list[str]] = None,
-        transform: Optional[Callable] = None,
+        recording_ids: list[str] | None = None,
+        transform: Callable | None = None,
         uniquify_channel_ids: bool = True,
-        split_type: Optional[Literal["fold_0", "fold_1", "fold_2"]] = "fold_0",
+        split_type: Literal["fold_0", "fold_1", "fold_2"] | None = "fold_0",
         dirname: str = "kemp_sleep_edf_2013",
         **kwargs,
     ):
@@ -30,9 +31,8 @@ class KempSleepEDF2013(Dataset):
 
     def get_sampling_intervals(
         self,
-        split: Optional[Literal["train", "valid", "test"]] = None,
+        split: Literal["train", "valid", "test"] | None = None,
     ):
-
         if split is None:
             return {rid: self.get_recording(rid).domain for rid in self.recording_ids}
 

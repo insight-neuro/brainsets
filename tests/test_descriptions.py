@@ -1,10 +1,10 @@
 import pytest
+
 from brainsets.descriptions import SubjectDescription
-from brainsets.taxonomy import Species, Sex
+from brainsets.taxonomy import Sex, Species
 
 
 class TestSubjectDescription:
-
     def test_basic_usage_with_all_parameters(self):
         result = SubjectDescription(
             id="subject_1",
@@ -132,9 +132,9 @@ class TestSubjectDescription:
 
         for species_str, expected_species in test_cases:
             result = SubjectDescription(id="s_1", species=species_str)
-            assert (
-                result.species == expected_species
-            ), f"Failed for input: {species_str}"
+            assert result.species == expected_species, (
+                f"Failed for input: {species_str}"
+            )
 
     def test_species_as_string_invalid(self):
         result = SubjectDescription(id="subject_1", species="invalid_species")
@@ -151,9 +151,9 @@ class TestSubjectDescription:
 
         for species_int, expected_species in test_cases:
             result = SubjectDescription(id="s_1", species=species_int)
-            assert (
-                result.species == expected_species
-            ), f"Failed for input: {species_int}"
+            assert result.species == expected_species, (
+                f"Failed for input: {species_int}"
+            )
 
     def test_species_as_int_invalid(self):
         result = SubjectDescription(id="s_1", species=999)

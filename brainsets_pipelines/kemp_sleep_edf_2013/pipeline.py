@@ -7,36 +7,34 @@
 # ]
 # ///
 
+import logging
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Optional, Tuple
 
 import h5py
-import logging
 import mne
 import numpy as np
 import pandas as pd
+from temporaldata import Data, Interval
 
 from brainsets import serialize_fn_map
 from brainsets.descriptions import (
     BrainsetDescription,
-    SubjectDescription,
-    SessionDescription,
     DeviceDescription,
+    SessionDescription,
+    SubjectDescription,
 )
-from brainsets.taxonomy import RecordingTech, Species, Sex
 from brainsets.pipeline import BrainsetPipeline
-from brainsets.utils.split import (
-    chop_intervals,
-    generate_stratified_folds,
-)
-from brainsets.utils.s3_utils import get_cached_s3_client
+from brainsets.taxonomy import RecordingTech, Sex, Species
 from brainsets.utils.mne_utils import (
     extract_measurement_date,
     extract_psg_signal,
 )
-from temporaldata import Data, Interval
-
+from brainsets.utils.s3_utils import get_cached_s3_client
+from brainsets.utils.split import (
+    chop_intervals,
+    generate_stratified_folds,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -69,7 +67,7 @@ class Pipeline(BrainsetPipeline):
         if args.study_type in ["st", "both"]:
             prefixes.append(f"{cls.prefix}/sleep-telemetry/")
 
-        def find_hypnogram_key(s3, psg_key: str) -> Optional[str]:
+        def find_hypnogram_key(s3, psg_key: str) -> str | None:
             """Find the hypnogram file corresponding to a PSG file."""
             psg_path = Path(psg_key)
             base_name = psg_path.stem
@@ -123,7 +121,7 @@ class Pipeline(BrainsetPipeline):
         manifest = pd.DataFrame(manifest_rows).set_index("session_id")
         return manifest
 
-    def download(self, manifest_item) -> Tuple[Path, Path]:
+    def download(self, manifest_item) -> tuple[Path, Path]:
         self.update_status("DOWNLOADING")
         s3 = get_cached_s3_client()
 
@@ -153,7 +151,7 @@ class Pipeline(BrainsetPipeline):
 
         return psg_local, hypnogram_local
 
-    def process(self, download_output: Tuple[Path, Path]) -> None:
+    def process(self, download_output: tuple[Path, Path]) -> None:
         psg_path, hypnogram_path = download_output
 
         self.update_status("PROCESSING")
@@ -242,7 +240,7 @@ class Pipeline(BrainsetPipeline):
         logging.info(f"Saved processed data to: {output_path}")
 
 
-def parse_subject_metadata(raw: mne.io.Raw) -> Tuple[Optional[int], Sex]:
+def parse_subject_metadata(raw: mne.io.Raw) -> tuple[int | None, Sex]:
     """Extract subject metadata from EDF header."""
     info = raw.info
     subject_info = info.get("subject_info", {})
@@ -252,7 +250,7 @@ def parse_subject_metadata(raw: mne.io.Raw) -> Tuple[Optional[int], Sex]:
         age_str = subject_info.get("last_name")
         if age_str is not None:
             age = int(age_str.replace("yr", ""))
-    except (ValueError, AttributeError) as e:
+    except (ValueError, AttributeError):
         logging.warning(f"Could not parse age from last_name: {age_str}, setting to 0")
         age = 0
 
@@ -282,7 +280,7 @@ def extract_sleep_stages(hypnogram_file: str) -> Interval:
     stage_ids = []
 
     for annot_onset, annot_duration, annot_description in zip(
-        annotations.onset, annotations.duration, annotations.description
+        annotations.onset, annotations.duration, annotations.description, strict=False
     ):
         starts.append(annot_onset)
         ends.append(annot_onset + annot_duration)
@@ -326,7 +324,9 @@ def create_splits(
     filtered = chopped.select_by_mask(mask)
     logging.info(f"Filtered out unknown stages, {len(filtered)} epochs remaining")
 
-    for stage_id, count in zip(*np.unique(filtered.id, return_counts=True)):
+    for stage_id, count in zip(
+        *np.unique(filtered.id, return_counts=True), strict=False
+    ):
         if count < n_folds:
             mask = ~np.isin(filtered.id, [stage_id])
             filtered = filtered.select_by_mask(mask)

@@ -3,29 +3,28 @@
 # dependencies = ["dandi==0.71.3"]
 # ///
 
-from argparse import ArgumentParser
 import datetime
+from argparse import ArgumentParser
 
 import h5py
-from pynwb import NWBHDF5IO
-from temporaldata import Data, IrregularTimeSeries, Interval
 import pandas as pd
+from pynwb import NWBHDF5IO
+from temporaldata import Data, Interval, IrregularTimeSeries
 
+from brainsets import serialize_fn_map
 from brainsets.descriptions import (
     BrainsetDescription,
-    SessionDescription,
     DeviceDescription,
+    SessionDescription,
 )
+from brainsets.pipeline import BrainsetPipeline
+from brainsets.taxonomy import RecordingTech, Task
 from brainsets.utils.dandi_utils import (
+    download_file,
     extract_spikes_from_nwbfile,
     extract_subject_from_nwb,
     get_nwb_asset_list,
-    download_file,
 )
-from brainsets.taxonomy import RecordingTech, Task
-from brainsets import serialize_fn_map
-
-from brainsets.pipeline import BrainsetPipeline
 
 parser = ArgumentParser()
 parser.add_argument("--redownload", action="store_true")
@@ -139,7 +138,7 @@ class Pipeline(BrainsetPipeline):
             domain="auto",
         )
 
-        if not "test" in str(fpath):
+        if "test" not in str(fpath):
             self.update_status("Creating Splits")
             # extract behavior
             data.hand, data.eye = extract_behavior(nwbfile, trials)

@@ -1,11 +1,11 @@
-from typing import Optional
-import click
 from pathlib import Path
-from prompt_toolkit import prompt
-from prompt_toolkit.shortcuts import CompleteStyle
-from prompt_toolkit.completion import PathCompleter
 
-from .utils import load_config, save_config, expand_path
+import click
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import PathCompleter
+from prompt_toolkit.shortcuts import CompleteStyle
+
+from .utils import expand_path, load_config, save_config
 
 
 @click.command()
@@ -21,7 +21,7 @@ from .utils import load_config, save_config, expand_path
     type=click.Path(file_okay=False, dir_okay=True),
     required=False,
 )
-def config(raw_dir: Optional[Path], processed_dir: Optional[Path]):
+def config(raw_dir: Path | None, processed_dir: Path | None):
     """Set raw and processed data directories."""
 
     # Get missing args from user prompts
