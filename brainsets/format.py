@@ -1,6 +1,7 @@
 from collections.abc import Callable
+from typing import Literal
 
-from temporaldata import ArrayDict, Data, RegularTimeSeries
+from temporaldata import ArrayDict, Data, Interval, RegularTimeSeries
 
 from brainsets.descriptions import (
     BrainsetDescription,
@@ -36,10 +37,11 @@ class NeuralData(Data):
         device: DeviceDescription,
         data: RegularTimeSeries,
         channels: ArrayDict,
+        domain: Literal["auto"] | Interval = "auto",
         *args,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs, domain=domain)
         self.brainset = brainset
         self.subject = subject
         self.session = session
