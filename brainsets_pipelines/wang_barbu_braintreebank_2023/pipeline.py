@@ -101,8 +101,9 @@ def localization_path(raw_dir: Path, subject_id: int | str) -> Path:
 
 
 class Pipeline(BrainsetPipeline):
+    brainset_id = "wang_barbu_braintreebank_2023"
     brainset_description = BrainsetDescription(
-        id="wang_barbu_braintreebank_2023",
+        id=brainset_id,
         origin_version="0.1.0",
         derived_version="0.1.0",
         source="https://braintreebank.dev/",
@@ -139,21 +140,20 @@ class Pipeline(BrainsetPipeline):
 
         return manifest
 
-    def download(self, manifest_item: NamedTuple) -> Path:
+    def download(self, manifest_item: NamedTuple) -> tuple[str, str, Path]:
         self.update_status("Downloading...")
         path = self.processed_dir / manifest_item.neural_data
         url = f"https://braintreebank.dev/data/subject_data/{manifest_item.subject_id}/{manifest_item.session_id}/{manifest_item.neural_data}.h5.zip"
         download_and_extract(url, extract_to=path.parent)
-        return path
+        return manifest_item.subject_id, manifest_item.session_id, path
 
-    def process(self, manifest_item: NamedTuple, downloaded_path: Path) -> None:
+    def process(self, download_output: tuple[str, str, Path]) -> None:
         self.update_status("Processing...")
-        subject_id = manifest_item.subject_id
-        session_id = manifest_item.session_id
+        subject_id, session_id, downloaded_path = download_output
         assert self.args is not None
 
         # Check if already processed
-        output_path = self.processed_dir / f"{manifest_item.neural_data}.hdf5"
+        output_path = self.processed_dir / f"{subject_id}_{session_id}.hdf5"
         if output_path.exists() and not self.args.overwrite:
             self.update_status("Already processed, skipping.")
             logger.info("Skipping processing, file exists: %s", output_path)
