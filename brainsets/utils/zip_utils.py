@@ -9,7 +9,6 @@ def download_and_extract(
     url: str,
     extract_to: Path,
     chunk_size: int | None = 8192,
-    delete_zip: bool = True,
 ):
     """Download a ZIP file from a URL and extract its contents.
 
@@ -17,10 +16,6 @@ def download_and_extract(
         url: The URL of the ZIP file to download.
         extract_to: The directory where the contents should be extracted.
         chunk_size: The size of chunks to read when streaming. If None, the entire file will be read at once.
-        delete_zip: Whether to delete the ZIP file after extraction.
-
-    Raises:
-        RuntimeError: If the download or extraction fails.
     """
     zip_path = os.path.basename(url.split("?")[0])
     stream = chunk_size is not None
@@ -38,6 +33,3 @@ def download_and_extract(
 
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_to)
-
-    if delete_zip:
-        os.remove(zip_path)

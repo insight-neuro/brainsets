@@ -20,6 +20,9 @@ def import_pipeline_cls_from_file(pipeline_filepath: Path) -> type[BrainsetPipel
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("pipeline_module", pipeline_filepath)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load pipeline module from {pipeline_filepath}")
+
     pipeline_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(pipeline_module)
     return pipeline_module.Pipeline

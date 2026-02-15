@@ -1,14 +1,11 @@
 # /// brainset-pipeline
 # python-version = "3.11"
-# dependencies = [
-#     "numpy>=1.24.0",
-# ]
 # ///
 
 import json
+import logging
 from argparse import ArgumentParser
 from datetime import datetime
-from logging import getLogger
 from pathlib import Path
 from typing import NamedTuple
 
@@ -45,7 +42,7 @@ parser.add_argument(
     help="Skip the initial download of raw data. Use with caution, only if you are sure the raw data has already been downloaded and is in the correct format.",
 )
 
-logger = getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 SAMPLING_RATE = 2048  # Hz
 ALL_SUBJECT_TRIALS = [
@@ -128,20 +125,21 @@ class Pipeline(BrainsetPipeline):
 
         manifest = (
             pd.DataFrame(
-                {
-                    "subject_id": _to_subject_id(subj_id),
-                    "session_id": f"trial{trial_id:03}",
-                }
-                for subj_id, trial_id in ALL_SUBJECT_TRIALS
+                [
+                    {
+                        "subject_id": f"sub_{subj_id}",
+                        "session_id": f"trial{trial_id:03}",
+                    }
+                    for subj_id, trial_id in ALL_SUBJECT_TRIALS
+                ]
             )
             .assign(neural_data=lambda df: df["subject_id"] + "_" + df["session_id"])
             .set_index("neural_data")
         )
-
         return manifest
 
     def download(self, manifest_item: NamedTuple) -> tuple[str, str, Path]:
-        self.update_status("Downloading...")
+        self.update_status("DOWNLOADING")
         path = self.processed_dir / manifest_item.neural_data
         url = f"https://braintreebank.dev/data/subject_data/{manifest_item.subject_id}/{manifest_item.session_id}/{manifest_item.neural_data}.h5.zip"
         download_and_extract(url, extract_to=path.parent)
@@ -155,8 +153,7 @@ class Pipeline(BrainsetPipeline):
         # Check if already processed
         output_path = self.processed_dir / f"{subject_id}_{session_id}.hdf5"
         if output_path.exists() and not self.args.overwrite:
-            self.update_status("Already processed, skipping.")
-            logger.info("Skipping processing, file exists: %s", output_path)
+            logging.info("Skipping processing, file exists: %s", output_path)
             return
 
         self.update_status("Loading electrode metadata...")
@@ -187,16 +184,15 @@ class Pipeline(BrainsetPipeline):
 
         with h5py.File(output_path, "w") as f:
             brainset.to_hdf5(f)
-        logger.info("Processed data saved to %s", output_path)
+        logging.info("Processed data saved to %s", output_path)
 
         # Delete the downloaded raw data to save space
         downloaded_path.unlink()
 
-        self.update_status("Processing complete.")
         n_electrodes = neural_data.data.shape[1]
         session_length = neural_data.data.shape[0] / neural_data.sampling_rate
 
-        logger.info(
+        logging.info(
             "Processed session %s for subject %s at %s:\n"
             "\t- Number of electrodes: %d\n"
             "\t- Session length: %.2f seconds\n",
@@ -215,7 +211,7 @@ class Pipeline(BrainsetPipeline):
         # Download corrupted electrodes metadata (if not already downloaded)
         path = corrupted_electrodes_path(raw_dir)
         if not path.exists():
-            logger.info("Downloading corrupted electrodes metadata to %s...", path)
+            logging.info("Downloading corrupted electrodes metadata to %s...", path)
             url = "https://braintreebank.dev/data/corrupted_elec.json"
             response = requests.get(url)
             response.raise_for_status()
@@ -223,38 +219,38 @@ class Pipeline(BrainsetPipeline):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(corrupted_electrodes))
         else:
-            logger.info(
+            logging.info(
                 "Corrupted electrodes metadata already exists at %s, skipping download.",
                 path,
             )
 
         # Download electrode labels
         if all(electrode_labels_path(raw_dir, subj).exists() for subj in all_subjects):
-            logger.info(
+            logging.info(
                 "Electrode labels already exist for all subjects, skipping download."
             )
         else:
-            logger.info("Downloading electrode labels...")
+            logging.info("Downloading electrode labels...")
             download_and_extract(
                 "https://braintreebank.dev/data/electrode_labels.zip",
                 extract_to=raw_dir,
                 chunk_size=None,  # No streaming necessary
             )
-            logger.info("Electrode labels downloaded and extracted to %s.", raw_dir)
+            logging.info("Electrode labels downloaded and extracted to %s.", raw_dir)
 
         # Download localization data
         if all(localization_path(raw_dir, subj).exists() for subj in all_subjects):
-            logger.info(
+            logging.info(
                 "Localization data already exists for all subjects, skipping download."
             )
         else:
-            logger.info("Downloading localization data...")
+            logging.info("Downloading localization data...")
             download_and_extract(
                 "https://braintreebank.dev/data/localization.zip",
                 extract_to=raw_dir,
                 chunk_size=None,  # No streaming necessary
             )
-            logger.info("Localization data downloaded and extracted to %s.", raw_dir)
+            logging.info("Localization data downloaded and extracted to %s.", raw_dir)
 
     def _load_ieeg_electrodes(
         self, subject_id: str, electrode_labels: list[str]
