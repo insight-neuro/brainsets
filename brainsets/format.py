@@ -67,10 +67,8 @@ class NeuralData(Data):
         self.subject = subject
         self.session = session
         self.device = device
-        self.data = data
-        self.channels = channels
-        super().__init__(*args, **kwargs, domain=domain)
 
+        super().__init__(*args, **kwargs, data=data, channels=channels, domain=domain)
 
     def to_hdf5(
         self,
@@ -78,4 +76,3 @@ class NeuralData(Data):
         serialize_fn_map: dict[type, Callable] | None = serialize_fn_map,
     ):
         super().to_hdf5(file, serialize_fn_map)
-    
