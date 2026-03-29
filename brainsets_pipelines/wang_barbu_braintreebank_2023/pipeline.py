@@ -13,7 +13,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import requests
-from temporaldata import RegularTimeSeries
+from temporaldata import ArrayDict, RegularTimeSeries
 
 from brainsets.descriptions import (
     BrainsetDescription,
@@ -198,12 +198,12 @@ class Pipeline(BrainsetPipeline):
         self.update_status("Loading electrode metadata...")
         with open(electrode_labels_path(self.raw_dir, subject_id)) as f:
             electrode_labels = [self._clean_electrode_label(e) for e in json.load(f)]
-        channels, channel_coordinates = self._load_ieeg_electrodes(
-            subject_id, electrode_labels
-        )
+        channels = self._load_ieeg_electrodes(subject_id, electrode_labels)
 
         self.update_status("Loading neural data...")
-        neural_data = self._load_ieeg_data(downloaded_path, electrode_labels, channels)
+        neural_data = self._load_ieeg_data(
+            downloaded_path, electrode_labels, channels.labels
+        )
 
         self.update_status("Saving processed data...")
 
@@ -220,8 +220,7 @@ class Pipeline(BrainsetPipeline):
             session=session,
             device=self.device_description,
             signals=neural_data,
-            channel_labels=channels,
-            channel_coordinates=channel_coordinates,
+            channels=channels,
             domain="auto",
         )
 
@@ -312,7 +311,7 @@ class Pipeline(BrainsetPipeline):
 
     def _load_ieeg_electrodes(
         self, subject_id: str, electrode_labels: list[str]
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> ArrayDict:
         """Load and clean electrode channel metadata."""
 
         electrode_labels = self._filter_electrode_labels(subject_id, electrode_labels)
@@ -330,8 +329,10 @@ class Pipeline(BrainsetPipeline):
         # Awaiting proper MNI coordinates from braintreebank.
         coordinates = -df[["L", "P", "I"]].to_numpy(dtype=np.float32)
 
-        ids = np.array(electrode_labels)
-        return ids, coordinates
+        return ArrayDict(
+            labels=np.array(electrode_labels),
+            coordinates=coordinates,
+        )
 
     def _load_ieeg_data(
         self,
