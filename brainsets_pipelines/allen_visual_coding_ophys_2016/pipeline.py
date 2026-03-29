@@ -65,7 +65,7 @@ class Pipeline(BrainsetPipeline):
     parser = parser
 
     @classmethod
-    def get_manifest(cls, raw_dir, args) -> pd.DataFrame:
+    def get_manifest(cls, raw_dir, processed_dir, args) -> pd.DataFrame:
         # We have a precomputed list of "good" sessions that were used in POYO+.
         pipeline_dir = Path(__file__).resolve().parent
         with open(pipeline_dir / "session_ids.txt") as fh:

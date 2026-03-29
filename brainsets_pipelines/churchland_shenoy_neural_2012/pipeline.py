@@ -42,6 +42,7 @@ class Pipeline(BrainsetPipeline):
     def get_manifest(
         cls,
         raw_dir: Path,
+        processed_dir: Path,
         args: Namespace | None,
     ) -> pd.DataFrame:
         asset_list = get_nwb_asset_list(cls.dandiset_id)

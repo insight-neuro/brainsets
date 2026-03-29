@@ -58,7 +58,7 @@ class Pipeline(BrainsetPipeline):
     parser = parser
 
     @classmethod
-    def get_manifest(cls, raw_dir: Path, args) -> pd.DataFrame:
+    def get_manifest(cls, raw_dir: Path, processed_dir: Path, args) -> pd.DataFrame:
         s3 = get_cached_s3_client()
 
         prefixes = []

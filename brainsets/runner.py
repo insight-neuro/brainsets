@@ -148,6 +148,7 @@ def run():
 
     manifest = pipeline_cls.get_manifest(
         raw_dir=raw_dir,
+        processed_dir=processed_dir,
         args=pipeline_args,
     )
     print(f"Discovered {len(manifest)} manifest items")

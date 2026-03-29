@@ -102,6 +102,7 @@ class BrainsetPipeline(ABC):
     def get_manifest(
         cls,
         raw_dir: Path,
+        processed_dir: Path,
         args: Namespace | None,
     ) -> pd.DataFrame:
         r"""Returns a :obj:`pandas.DataFrame`, which is a table of assets to be
@@ -115,6 +116,8 @@ class BrainsetPipeline(ABC):
         ----------
         raw_dir: Path
             Raw data directory assigned to this brainset by the pipeline runner.
+        processed_dir: Path
+            Processed data directory assigned to this brainset by the pipeline runner.
         args: Optional[Namespace]
             Pipeline-specific arguments parsed from the command line. Set by the runner
             if :attr:`parser` is defined by subclass.

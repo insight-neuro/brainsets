@@ -84,7 +84,7 @@ Pipelines can also expose custom CLI arguments by attaching an
         parser = parser
 
         @classmethod
-        def get_manifest(cls, raw_dir, args) -> pd.DataFrame:
+        def get_manifest(cls, raw_dir, processed_dir, args) -> pd.DataFrame:
             ...
 
         def download(self, manifest_item):
@@ -128,7 +128,7 @@ using the Dandi API:
 .. code-block:: python
 
     @classmethod
-    def get_manifest(cls, raw_dir, args) -> pd.DataFrame:
+    def get_manifest(cls, raw_dir, processed_dir, args) -> pd.DataFrame:
         from dandi_utils import get_nwb_asset_list
 
         asset_list = get_nwb_asset_list(cls.dandiset_id)

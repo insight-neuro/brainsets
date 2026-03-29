@@ -41,7 +41,16 @@ parser.add_argument(
     action="store_true",
     help="Skip the initial download of raw data. Use with caution, only if you are sure the raw data has already been downloaded and is in the correct format.",
 )
-
+parser.add_argument(
+    "--nano",
+    action="store_true",
+    help="Download only the nano subset of the data for Neuroprobe",
+)
+parser.add_argument(
+    "--lite",
+    action="store_true",
+    help="Download only the lite subset of the data for Neuroprobe",
+)
 logging.basicConfig(level=logging.INFO)
 
 SAMPLING_RATE = 2048  # Hz
@@ -74,14 +83,31 @@ ALL_SUBJECT_TRIALS = [
     (10, 1),
 ]
 
+NANO_SUBJECT_TRIALS = [(1, 1), (2, 4), (3, 1), (4, 0), (7, 1), (10, 1)]
+
+LITE_SUBJECT_TRIALS = [
+    (1, 1),
+    (1, 2),
+    (2, 0),
+    (2, 4),
+    (3, 0),
+    (3, 1),
+    (4, 0),
+    (4, 1),
+    (7, 0),
+    (7, 1),
+    (10, 0),
+    (10, 1),
+]
+
 
 def _to_subject_id(subj_id: int | str) -> str:
     subj_id = str(subj_id)
     return subj_id if subj_id.startswith("sub_") else f"sub_{subj_id}"
 
 
-def corrupted_electrodes_path(root: Path) -> Path:
-    return root / "corrupted_elec.json"
+def corrupted_electrodes_path(raw_dir: Path) -> Path:
+    return raw_dir / "corrupted_elec.json"
 
 
 def electrode_labels_path(raw_dir: Path, subject_id: int | str) -> Path:
@@ -95,6 +121,10 @@ def electrode_labels_path(raw_dir: Path, subject_id: int | str) -> Path:
 
 def localization_path(raw_dir: Path, subject_id: int | str) -> Path:
     return raw_dir / "localization" / _to_subject_id(subject_id) / "depth-wm.csv"
+
+
+def transcripts_path(processed_dir: Path) -> Path:
+    return processed_dir / "transcripts"
 
 
 class Pipeline(BrainsetPipeline):
@@ -117,11 +147,19 @@ class Pipeline(BrainsetPipeline):
     parser = parser
 
     @classmethod
-    def get_manifest(cls, raw_dir: Path, args) -> pd.DataFrame:
+    def get_manifest(cls, raw_dir: Path, processed_dir: Path, args) -> pd.DataFrame:
         assert args is not None
 
         if not args.skip_initial_download:
-            cls._initial_download(raw_dir)
+            cls._initial_download(raw_dir, processed_dir)
+
+        subject_trials = (
+            NANO_SUBJECT_TRIALS
+            if args.nano
+            else LITE_SUBJECT_TRIALS
+            if args.lite
+            else ALL_SUBJECT_TRIALS
+        )
 
         manifest = (
             pd.DataFrame(
@@ -131,7 +169,7 @@ class Pipeline(BrainsetPipeline):
                         "session_id": f"trial{trial_id:03}",
                         "filename": bids_filename(subj_id, trial_id),
                     }
-                    for subj_id, trial_id in ALL_SUBJECT_TRIALS
+                    for subj_id, trial_id in subject_trials
                 ]
             )
             .assign(neural_data=lambda df: df["subject_id"] + "_" + df["session_id"])
@@ -160,7 +198,9 @@ class Pipeline(BrainsetPipeline):
         self.update_status("Loading electrode metadata...")
         with open(electrode_labels_path(self.raw_dir, subject_id)) as f:
             electrode_labels = [self._clean_electrode_label(e) for e in json.load(f)]
-        channels = self._load_ieeg_electrodes(subject_id, electrode_labels)
+        channels, channel_coordinates = self._load_ieeg_electrodes(
+            subject_id, electrode_labels
+        )
 
         self.update_status("Loading neural data...")
         neural_data = self._load_ieeg_data(downloaded_path, electrode_labels, channels)
@@ -179,8 +219,9 @@ class Pipeline(BrainsetPipeline):
             subject=subject,
             session=session,
             device=self.device_description,
-            data=neural_data,
-            channels=channels,
+            signals=neural_data,
+            channel_labels=channels,
+            channel_coordinates=channel_coordinates,
             domain="auto",
         )
 
@@ -205,7 +246,7 @@ class Pipeline(BrainsetPipeline):
         )
 
     @classmethod
-    def _initial_download(cls, raw_dir: Path):
+    def _initial_download(cls, raw_dir: Path, processed_dir: Path) -> None:
         """Called when the pipeline is first run, to download the raw data."""
         all_subjects = {subj for subj, _ in ALL_SUBJECT_TRIALS}
 
@@ -253,6 +294,22 @@ class Pipeline(BrainsetPipeline):
             )
             logging.info("Localization data downloaded and extracted to %s.", raw_dir)
 
+        # Download transcript data (for Neuroprobe)
+        if transcripts_path(processed_dir).exists():
+            logging.info(
+                "Transcript data already exists at %s, skipping download.",
+                transcripts_path(processed_dir),
+            )
+        else:
+            logging.info("Downloading transcript data...")
+            download_and_extract(
+                "https://braintreebank.dev/data/transcripts.zip",
+                extract_to=processed_dir,
+            )
+            logging.info(
+                "Transcript data downloaded and extracted to %s.", processed_dir
+            )
+
     def _load_ieeg_electrodes(
         self, subject_id: str, electrode_labels: list[str]
     ) -> ArrayDict:
@@ -273,12 +330,8 @@ class Pipeline(BrainsetPipeline):
         # Awaiting proper MNI coordinates from braintreebank.
         coordinates = -df[["L", "P", "I"]].to_numpy(dtype=np.float32)
 
-        return ArrayDict(
-            id=np.array(electrode_labels),
-            x=coordinates[:, 0],
-            y=coordinates[:, 1],
-            z=coordinates[:, 2],
-        )
+        ids = np.array(electrode_labels)
+        return ids, coordinates
 
     def _load_ieeg_data(
         self, neural_data_file: Path, electrode_labels: list[str], channels: ArrayDict

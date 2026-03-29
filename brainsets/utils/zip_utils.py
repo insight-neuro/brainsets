@@ -1,4 +1,4 @@
-import os
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -17,19 +17,20 @@ def download_and_extract(
         extract_to: The directory where the contents should be extracted.
         chunk_size: The size of chunks to read when streaming. If None, the entire file will be read at once.
     """
-    zip_path = os.path.basename(url.split("?")[0])
     stream = chunk_size is not None
 
     response = requests.get(url, stream=stream)
     response.raise_for_status()
 
-    with open(zip_path, "wb") as f:
+    with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
         if stream:
             for chunk in response.iter_content(chunk_size=chunk_size):
                 if chunk:
-                    f.write(chunk)
+                    tmp.write(chunk)
         else:
-            f.write(response.content)
+            tmp.write(response.content)
 
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(extract_to)
+        tmp.flush()
+
+        with zipfile.ZipFile(tmp.name, "r") as zip_ref:
+            zip_ref.extractall(extract_to)

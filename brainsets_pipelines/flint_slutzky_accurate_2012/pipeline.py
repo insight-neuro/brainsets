@@ -61,6 +61,7 @@ class Pipeline(BrainsetPipeline):
     def get_manifest(
         cls,
         raw_dir: Path,
+        processed_dir: Path,
         args: Namespace | None,
     ) -> pd.DataFrame:
         manifest_list = [

@@ -37,7 +37,7 @@ class Pipeline(BrainsetPipeline):
     parser = parser
 
     @classmethod
-    def get_manifest(cls, raw_dir, args) -> pd.DataFrame:
+    def get_manifest(cls, raw_dir, processed_dir, args) -> pd.DataFrame:
         raw_dir.mkdir(exist_ok=True, parents=True)
 
         # list files to download
