@@ -13,7 +13,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import requests
-from temporaldata import ArrayDict, RegularTimeSeries
+from temporaldata import RegularTimeSeries
 
 from brainsets.descriptions import (
     BrainsetDescription,
@@ -312,7 +312,7 @@ class Pipeline(BrainsetPipeline):
 
     def _load_ieeg_electrodes(
         self, subject_id: str, electrode_labels: list[str]
-    ) -> ArrayDict:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Load and clean electrode channel metadata."""
 
         electrode_labels = self._filter_electrode_labels(subject_id, electrode_labels)
@@ -334,13 +334,16 @@ class Pipeline(BrainsetPipeline):
         return ids, coordinates
 
     def _load_ieeg_data(
-        self, neural_data_file: Path, electrode_labels: list[str], channels: ArrayDict
+        self,
+        neural_data_file: Path,
+        electrode_labels: list[str],
+        channels_ids: np.ndarray,
     ) -> RegularTimeSeries:
         """Load the neural data from the provided h5 file,
         using the electrode labels to select and order the channels."""
         with h5py.File(neural_data_file, "r", locking=False) as f:
             data_group = f["data"]
-            labels = list(channels.id)  # type: ignore[attr-defined]
+            labels = list(channels_ids)
 
             # Build reverse index
             label_to_index = {label: i for i, label in enumerate(electrode_labels)}
